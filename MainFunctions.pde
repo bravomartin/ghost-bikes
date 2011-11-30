@@ -1,27 +1,33 @@
 
-void mapAccidents(int top) {
+void mapAccidents(int counter) {
   background(0);
-  if(top >locs.length) top = locs.length;
-
-  for (int i = 0; i < top; i++) {
+  if (counter >locs.length) {
+    counter = locs.length;
+    println("end");
+  }
+  for (int i = 0; i < counter; i++) {
     PVector loc = mapVector(locs[i]);
 
     stroke(255, 50);
-    line (loc.x, loc.y, here.x, here.y);
-
+    line (loc.x, loc.y, loc.z, here.x, here.y, loc.z);
     fill(255);
     noStroke();
-    ellipse(loc.x, loc.y, 6, 6);
-    float angle = findAngle(loc);
+    pushMatrix();
+      translate(loc.x, loc.y, loc.z);
+      sphere(10);
+      //ellipse(loc.x, loc.y, 6, 6);  
+      float angle = findAngle(loc);
+      fill(255, 100, 100);
+      angle = Math.round(angle*100.0)/100.0;
+      textSize(9);
+      rotateX(-PI/2);
+      text(angle+ " / on " + dates[i].toString(), 5, 3, 0);
+    popMatrix();
 
-    fill(255, 100, 100);
-    textSize(9);
-    text(angle+ ' ' + dates[i].toString(), loc.x, loc.y);
+
   }
   fill(255, 0, 0);
   ellipse (here.x, here.y, 10, 10);
-  fill(0, 255, 0);
-  ellipse (home.x, home.y, 10, 10);
 }
 
 

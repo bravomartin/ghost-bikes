@@ -10,19 +10,24 @@ PVector here, home;
 PVector[] locs;
 Date[] dates;
 Date first, last;
-float[] times;
+float[] times, scaledTimes;
+float time;
 float x_max, x_min, y_max, y_min;
 int[] deaths;
+int counter = 0;
+float[] randomRotations;
 
-void setup(){
- String[] DATA = loadStrings("bike_fatalities_with_hour.csv");
-  size(1000, 700);
+void setup() {
+  String[] DATA = loadStrings("bike_fatalities_with_hour.csv");
+  size(1000, 700, OPENGL);
   smooth();
 
   locs = new PVector[DATA.length];
   dates = new Date[DATA.length];
   deaths = new int[DATA.length];
   times = new float[DATA.length];
+  scaledTimes = new float[DATA.length];
+  randomRotations = new float[DATA.length];
 
   here = getLatLon(here_addr);
   home = getLatLon(home_addr);
@@ -31,7 +36,7 @@ void setup(){
 
   for (int i = 0; i < DATA.length; i++) {
     String[] splits = DATA[i].split(",");
-    locs[i] = new PVector (float(splits[2]), float(splits[3]));
+    locs[i] = new PVector (float(splits[2]), float(splits[3]),0);
     try {
       dates[i] =  sdf.parse(splits[0]);
       times[i] = (float)dates[i].getTime();
@@ -55,10 +60,23 @@ void setup(){
 
   findExtremeDates(dates);
   // accidentsDates();
-}
+  for (int i = 0; i < times.length; i++) {
+    times[i] = times[i]-first.getTime();
+    scaledTimes[i] = map(times[i], 0, last.getTime()-first.getTime(), 0, 1000*60);
+    locs[i].z = map(times[i],0,last.getTime()-first.getTime(),0,1000);
+  //  println(locs[i].z);
+  }
+} 
 
 void draw() {
-  float time = millis()/1000;
-  mapAccidents(int(time));
-}
+  scale(.6);
+  translate(100,mouseY/1.0);
+  rotateX(mouseX/100.0);
+  for (int i = 0; i < scaledTimes.length; i++) {
+    if (millis()-2000 > scaledTimes[i] && counter < i ) {
+      counter = i;
+    }
+  }
+    mapAccidents(counter);
+  }
 

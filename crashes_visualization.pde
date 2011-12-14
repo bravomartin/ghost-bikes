@@ -1,9 +1,16 @@
 //1995-04-04 07:00:00
 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
-// add vectors
+// duration to which it will scale the time.
+int DURATION = 1000*60*15;
 
-//my vector
+// Control Variables
+boolean TIMED = true;
+boolean IN3D = true;
+boolean MOUSE = false;
+boolean SHOW = false;
+boolean MAPP = false;
+
 String here_addr = "721 Broadway, NY 10003";
 String home_addr = "159 Ellery Street, NY 11206";
 PVector here, home;
@@ -14,8 +21,12 @@ float[] times, scaledTimes;
 float time;
 float x_max, x_min, y_max, y_min;
 int[] deaths;
+
+float[] ypos;
+
 int counter = 0;
 float[] randomRotations;
+
 
 void setup() {
   String[] DATA = loadStrings("bike_fatalities_with_hour.csv");
@@ -28,6 +39,7 @@ void setup() {
   times = new float[DATA.length];
   scaledTimes = new float[DATA.length];
   randomRotations = new float[DATA.length];
+  ypos = new float[DATA.length];
 
   here = getLatLon(here_addr);
   home = getLatLon(home_addr);
@@ -36,10 +48,11 @@ void setup() {
 
   for (int i = 0; i < DATA.length; i++) {
     String[] splits = DATA[i].split(",");
-    locs[i] = new PVector (float(splits[2]), float(splits[3]),0);
+    locs[i] = new PVector (float(splits[2]), float(splits[3]), 0);
     try {
       dates[i] =  sdf.parse(splits[0]);
       times[i] = (float)dates[i].getTime();
+      ypos[i] =  height/2+random(-300, 300);
     } 
     catch (Exception e) {
       println(e);
@@ -62,21 +75,57 @@ void setup() {
   // accidentsDates();
   for (int i = 0; i < times.length; i++) {
     times[i] = times[i]-first.getTime();
-    scaledTimes[i] = map(times[i], 0, last.getTime()-first.getTime(), 0, 1000*60);
-    locs[i].z = map(times[i],0,last.getTime()-first.getTime(),0,1000);
-  //  println(locs[i].z);
+    scaledTimes[i] = map(times[i], 0, last.getTime()-first.getTime(), 0, DURATION);
+    locs[i].z = map(times[i], 0, last.getTime()-first.getTime(), 0, 200);
+    //  println(locs[i].z);
   }
 } 
 
 void draw() {
-  scale(.6);
-  translate(100,mouseY/1.0);
-  rotateX(mouseX/100.0);
+  if (IN3D) {
+    //  scale(.6);
+    translate(here.x, here.y, 0 );
+    translate(90, 250);
+    println(mouseX+" "+mouseY);
+    rotateX(PI/2);
+    rotateZ(mouseY*0.01);  
+    translate(-here.x, -here.y, 0 );
+    //  rotateY(/1000.0);
+  }
   for (int i = 0; i < scaledTimes.length; i++) {
-    if (millis()-2000 > scaledTimes[i] && counter < i ) {
-      counter = i;
+    if (TIMED) {    
+      if (millis()-2000 > scaledTimes[i] && counter < i ) {
+        counter = i;
+      }
+    } 
+    else {
+      float mouse = map(mouseX, 0, width, scaledTimes[0], scaledTimes[scaledTimes.length-1]); 
+      if (mouse > scaledTimes[i]) {
+        counter = i;
+      }
     }
   }
+  if (MAPP && !IN3D) {
+    accidentsDates(counter);
+  }
+  else {
     mapAccidents(counter);
   }
+}
+
+void keyPressed() {
+  if (key == '3') {
+    IN3D = !IN3D;
+  }
+  if (key == 't' || key == 'T') {
+    TIMED = !TIMED;
+  }
+  if (key == 's' || key == 'S') {
+    SHOW = !SHOW;
+  }
+  if (key == 'm' || key == 'M') {
+    MAPP = !MAPP;
+    IN3D = !IN3D;
+  }
+}
 
